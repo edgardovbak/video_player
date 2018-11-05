@@ -14,7 +14,7 @@
                 Your browser does not support the video tag.
     </video>
     <div id='media_controls' >
-        <progress id='progress-bar' min='0' max='100' value='0'>0% played</progress>
+        <input type="range" id="seek-bar" value="0">
         <button id='play-pause-button' class='play' title='play' onclick='togglePlayPause();'>Play</button>
         <button id='stop-button' class='stop' title='stop' onclick='stopPlayer();'>Stop</button>
         <button id='volume-inc-button' class='volume-plus' title='increase volume' onclick='changeVolume("+");'>Increase volume</button>

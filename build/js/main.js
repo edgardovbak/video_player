@@ -50,3 +50,30 @@ function toggleMute() {
       mediaPlayer.muted = true;
    }
 }
+
+window.onload = function() {
+    var seekBar = document.getElementById("seek-bar");
+    //Event listener for the seek bar
+    seekBar.addEventListener("change", function() {
+        //Calculate new time
+        var newTime = mediaPlayer.duration * (seekBar.value / 100);
+        mediaPlayer.currentTime = newTime;
+    });
+
+    //As video progresses, seekBar moves forward
+    seekBar.addEventListener("timeupdate", function() {
+        var value = (100 / mediaPlayer.duration) * mediaPlayer.currentTime;
+        seekBar.value = value;
+    });
+
+    // Pause the video when the slider handle is being dragged
+    seekBar.addEventListener("mousedown", function() {
+        mediaPlayer.pause();
+    });
+
+    // Play the video when the slider handle is dropped
+    seekBar.addEventListener("mouseup", function() {
+        mediaPlayer.play();
+    });
+
+}
