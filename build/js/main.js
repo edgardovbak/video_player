@@ -6,45 +6,6 @@ function initialiseMediaPlayer() {
    mediaPlayer.controls = false;
 }
 
-function togglePlayPause() {
-   var btn = document.getElementById('play-pause-button');
-   if (mediaPlayer.paused || mediaPlayer.ended) {
-      btn.title = 'pause';
-      btn.innerHTML = 'pause';
-      btn.className = 'pause';
-      mediaPlayer.play();
-   }
-   else {
-      btn.title = 'play';
-      btn.innerHTML = 'play';
-      btn.className = 'play';
-      mediaPlayer.pause();
-   }
-}
-
-function changeButtonType(btn, value) {
-   btn.title = value;
-   btn.innerHTML = value;
-   btn.className = value;
-}
-
-function stopPlayer() {
-   mediaPlayer.pause();
-   mediaPlayer.currentTime = 0;
-}
-
-function toggleMute() {
-   var btn = document.getElementById('mute-button');
-   if (mediaPlayer.muted) {
-      changeButtonType(btn, 'mute');
-      mediaPlayer.muted = false;
-   }
-   else {
-      changeButtonType(btn, 'unmute');
-      mediaPlayer.muted = true;
-   }
-}
-
 window.onload = function() {
     var seekBar = document.getElementById("seek_bar");
     //Event listener for the seek bar
@@ -75,4 +36,31 @@ window.onload = function() {
     volumeBar.addEventListener("change", function() {
         mediaPlayer.volume = volumeBar.value;
     });
+}
+
+function togglePlayPause() {
+   var btn = document.getElementById('play-pause-button');
+   if (mediaPlayer.paused || mediaPlayer.ended) {
+      btn.title = 'pause';
+      btn.innerHTML = 'pause';
+      btn.className = 'pause';
+      mediaPlayer.play();
+   }
+   else {
+      btn.title = 'play';
+      btn.innerHTML = 'play';
+      btn.className = 'play';
+      mediaPlayer.pause();
+   }
+}
+
+function changeButtonType(btn, value) {
+   btn.title = value;
+   btn.innerHTML = value;
+   btn.className = value;
+}
+
+function stopPlayer() {
+   mediaPlayer.pause();
+   mediaPlayer.currentTime = 0;
 }
