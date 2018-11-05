@@ -5,3 +5,4 @@ bower_components
 layout
 package-lock
 /components/
+package-lock.json

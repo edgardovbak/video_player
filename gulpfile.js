@@ -96,7 +96,6 @@ gulp.task('scripts', function() {
     .pipe(size())
     .pipe(gulp.dest('build/js'))
     .pipe(rename({ suffix: '.min' }))
-    .pipe(uglify())
     .pipe(size())
     .pipe(gulp.dest('build/js'))
     .pipe(notify({ message: 'Scripts task complete' }));
