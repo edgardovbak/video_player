@@ -33,12 +33,6 @@ function stopPlayer() {
    mediaPlayer.currentTime = 0;
 }
 
-function changeVolume(direction) {
-   if (direction === '+') mediaPlayer.volume += mediaPlayer.volume == 1 ? 0 : 0.1;
-   else mediaPlayer.volume -= (mediaPlayer.volume == 0 ? 0 : 0.1);
-   mediaPlayer.volume = parseFloat(mediaPlayer.volume).toFixed(1);
-}
-
 function toggleMute() {
    var btn = document.getElementById('mute-button');
    if (mediaPlayer.muted) {
@@ -52,7 +46,7 @@ function toggleMute() {
 }
 
 window.onload = function() {
-    var seekBar = document.getElementById("seek-bar");
+    var seekBar = document.getElementById("seek_bar");
     //Event listener for the seek bar
     seekBar.addEventListener("change", function() {
         //Calculate new time
@@ -76,4 +70,9 @@ window.onload = function() {
         mediaPlayer.play();
     });
 
+    var volumeBar = document.getElementById("volume_bar");
+    //Event listener for the volume slider
+    volumeBar.addEventListener("change", function() {
+        mediaPlayer.volume = volumeBar.value;
+    });
 }

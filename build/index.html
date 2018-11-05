@@ -14,11 +14,10 @@
                 Your browser does not support the video tag.
     </video>
     <div id='media_controls' >
-        <input type="range" id="seek-bar" value="0">
+        <input type="range" id="seek_bar" value="0">
         <button id='play-pause-button' class='play' title='play' onclick='togglePlayPause();'>Play</button>
         <button id='stop-button' class='stop' title='stop' onclick='stopPlayer();'>Stop</button>
-        <button id='volume-inc-button' class='volume-plus' title='increase volume' onclick='changeVolume("+");'>Increase volume</button>
-        <button id='volume-dec-button' class='volume-minus' title='decrease volume' onclick='changeVolume("-");'>Decrease volume</button>
+        <input type="range" id="volume_bar" min="0" max="1" step="0.1" value="1">
         <button id='mute-button' class='mute' title='mute' onclick='toggleMute();'>Mute</button>
     </div>
     <script type="text/javascript" src="js/main.js"></script>
