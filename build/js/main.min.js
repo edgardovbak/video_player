@@ -3,81 +3,86 @@ var log = function(msg) {
   console.log(msg);
 };
 
-var FILE,CODEC,mediaSource,mediaPlayer;
-var NUM_CHUNKS = 6;
+var CODEC,mediaSource,mediaPlayer;
+
+var numOFSegments = 596;
+var segNum = 1;
 
 document.addEventListener("DOMContentLoaded", function() { initialiseMediaPlayer(); }, false);
 
 function initialiseMediaPlayer() {
    mediaPlayer = document.getElementById('media_video');
    mediaPlayer.controls = false;
-   window.MediaSource = window.MediaSource || window.WebKitMediaSource;
-   if (!!!window.MediaSource) {
-       alert('MediaSource API is not available');
-   }
-   start('mp4');
+
+   mediaPlayerSource('mp4');
+
+   mediaPlayerControls();
 }
 
-function callback() {
-    var sourceBuffer = mediaSource.addSourceBuffer(CODEC);
-    GET(FILE, function(uInt8Array) {
-        var file = new Blob([uInt8Array], {type: 'video/mp4'});
-        var chunkSize = Math.ceil(file.size / NUM_CHUNKS);
-        var i = 0;
-        (function readChunk_(i) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                sourceBuffer.appendBuffer(new Uint8Array(e.target.result));
-                console.log(e.target);
-                if (i == NUM_CHUNKS - 1) {
-                    mediaSource.endOfStream();
-                } else {
-                    if (mediaPlayer.paused) {
-                        mediaPlayer.play();
-                    }
-                    readChunk_(++i);
-                }
-            };
-            var startByte = chunkSize * i;
-            var chunk = file.slice(startByte, startByte + chunkSize);
-            reader.readAsArrayBuffer(chunk);
-        })(i);
-    });
-}
-function GET(url, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'arraybuffer';
-    xhr.send();
-    xhr.onload = function(e) {
-        if (xhr.status != 200) {
-            alert("Unexpected status code " + xhr.status + " for " + url);
-            return false;
-        }
-                console.log(xhr.response);
-        callback(new Uint8Array(xhr.response));
-    };
-}
-function start(type) {
+function mediaPlayerSource(type) {
     if (type == 'webm') {
-        FILE = 'test.webm';
         CODEC = 'video/webm; codecs="vorbis,vp8"';
     }
     if (type == 'mp4') {
-        FILE = '/video/video_dashinit.mp4';
-        CODEC = 'video/mp4; codecs="avc1.64000d,mp4a.40.2"';
+        CODEC = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
     }
-    mediaSource = new MediaSource();
-    mediaPlayer.src = window.URL.createObjectURL(mediaSource);
-    mediaSource.addEventListener('sourceopen', callback, false);
-    mediaSource.addEventListener('webkitsourceopen', callback, false);
-    mediaSource.addEventListener('webkitsourceended', function(e) {
-    }, false);
+    if ('MediaSource' in window && MediaSource.isTypeSupported(CODEC)) {
+        mediaSource = new MediaSource();
+        mediaPlayer.src = URL.createObjectURL(mediaSource);
+        mediaSource.addEventListener('sourceopen', MSEOpened, false);
+        mediaSource.addEventListener('webkitsourceopen', MSEOpened, false);
+    } else {
+        console.error('Unsupported MIME type or codec: ', CODEC);
+    }
 }
 
-window.onload = function() {
+function MSEOpened() {
+    // create source buffer
+    var sourceBuffer = mediaSource.addSourceBuffer(CODEC);
+    // request for init segment
+    var req = new XMLHttpRequest();
+    var responseType = "arraybuffer";
+    req.open("GET", "http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014/BigBuckBunny/1sec/bunny_91917bps/BigBuckBunny_1s_init.mp4", true);
+    req.onload = function () {
+        var resp = req.response;
+        var arr = new Uint8Array(resp);
+        sourceBuffer.appendBuffer(arr);
+        sourceBuffer.addEventListener("updateend", loadSegment);
+    };
+    req.onerror = function () {
+        console.log("** An error occurred during the transaction");
+    };
+    req.send();
 
-    var togglePlayPause = document.getElementById('play-pause-button');
+    function loadSegment() {
+        if ( segNum <= numOFSegments) {
+            getSegment(segNum);
+            segNum++;
+        } else {
+            mediaSource.endOfStream();
+        }
+    };
+
+    function getSegment() {
+        var req = new XMLHttpRequest();
+        var responseType = "arraybuffer";
+        req.open("GET", "http://www-itec.uni-klu.ac.at/ftp/datasets/DASHDataset2014/BigBuckBunny/1sec/bunny_91917bps/BigBuckBunny_1s" + segNum + ".m4s", true);
+        req.onload = function () {
+            var resp = req.response;
+            var arr = new Uint8Array(resp);
+            sourceBuffer.appendBuffer(arr);
+            sourceBuffer.addEventListener("updateend", loadSegment);
+        };
+        req.onerror = function () {
+            log("** An error occurred during the transaction");
+        };
+        req.send();
+    }
+}
+
+function mediaPlayerControls() {
+
+    var togglePlayPause = document.getElementById('media_controls_play-pause-button');
     togglePlayPause.addEventListener("click", function() {
         if (mediaPlayer.paused || mediaPlayer.ended) {
            togglePlayPause.title = 'pause';
@@ -93,20 +98,19 @@ window.onload = function() {
         }
     });
 
-    var seekBar = document.getElementById("seek-bar");
+    var seekBar = document.getElementById("media_controls_seek-bar");
     //Event listener for the seek bar
     seekBar.addEventListener("change", function() {
         //Calculate new time
         var newTime = mediaPlayer.duration * (seekBar.value / 100);
         mediaPlayer.currentTime = newTime;
     });
-    console.log(mediaPlayer.duration );
+
     //As video progresses, seekBar moves forward
-    seekBar.addEventListener("timeupdate", function() {
-        console.log(1231);
-        var value = (100 / mediaPlayer.duration) * mediaPlayer.currentTime;
-        seekBar.value = value;
-    }, false);
+    mediaPlayer.ontimeupdate = function(){
+      var percentage = ( mediaPlayer.currentTime / mediaPlayer.duration ) * 100;
+      seekBar.value = percentage;
+    };
 
     // Pause the video when the slider handle is being dragged
     seekBar.addEventListener("mousedown", function() {
@@ -118,14 +122,14 @@ window.onload = function() {
         mediaPlayer.play();
     });
 
-    var volumeBar = document.getElementById("volume-bar");
+    var volumeBar = document.getElementById("media_controls_volume-bar");
     //Event listener for the volume slider
     volumeBar.addEventListener("change", function() {
         mediaPlayer.volume = volumeBar.value;
     });
 
-    var stopPlayer = document.getElementById('stop-button');
-    stopPlayer.addEventListener("click", function() {
+    var resetPlayer = document.getElementById('media_controls_reset-button');
+    resetPlayer.addEventListener("click", function() {
         mediaPlayer.pause();
         mediaPlayer.currentTime = 0;
     });
